@@ -1,46 +1,23 @@
 import { useReducer, useEffect } from "react";
+import { Status, type StateType, type ActionType } from "./types";
 import Header from "./components/Header";
 import Main from "./components/Main";
 import { Loader } from "./components/Loader";
 import { ErrorMsg } from "./components/ErrorMsg";
 import { Start } from "./components/Start";
-
-type Question = {
-  question: string;
-  options: string[];
-  correctOption: number;
-  points: number;
-  id: string;
-};
-
-enum Status {
-  Loading = "loading",
-  Error = "error",
-  Ready = "ready",
-  Active = "active",
-  Finished = "finished",
-}
-
-type StateType = {
-  questions: Question[];
-  status: Status;
-};
-
-type ActionType =
-  | {
-      type: "dataFetched";
-      payload: Question[];
-    }
-  | {
-      type: "dataFailed";
-    };
+import { Quiz } from "./components/Quiz";
 
 const initialState: StateType = {
+  index: 0,
   questions: [],
+  answer: null,
+  points: 0,
   status: Status.Loading,
 };
 
 const reducer = (state: StateType, action: ActionType): StateType => {
+  const q = state.questions[state.index];
+
   switch (action.type) {
     case "dataFetched":
       return { ...state, questions: action.payload, status: Status.Ready };
@@ -48,13 +25,23 @@ const reducer = (state: StateType, action: ActionType): StateType => {
     case "dataFailed":
       return { ...state, status: Status.Error };
 
+    case "start":
+      return { ...state, status: Status.Active };
+
+    case "answer":
+      return {
+        ...state,
+        answer: action.payload,
+        points: action.payload === q.correctOption ? state.points + q.points : state.points,
+      };
+
     default:
       throw new Error("Unknown action");
   }
 };
 
 const App = () => {
-  const [{ questions, status }, dispatch] = useReducer(reducer, initialState);
+  const [{ index, questions, answer, points, status }, dispatch] = useReducer(reducer, initialState);
 
   const questionQty = questions.length;
 
@@ -75,7 +62,8 @@ const App = () => {
       <Main>
         {status === Status.Loading && <Loader />}
         {status === Status.Error && <ErrorMsg />}
-        {status === Status.Ready && <Start qty={questionQty} />}
+        {status === Status.Ready && <Start qty={questionQty} dispatch={dispatch} />}
+        {status === Status.Active && <Quiz question={questions[index]} answer={answer!} dispatch={dispatch} />}
       </Main>
     </div>
   );
