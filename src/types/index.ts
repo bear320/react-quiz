@@ -28,7 +28,7 @@ export type ActionType =
       payload: Question[];
     }
   | {
-      type: "dataFailed" | "start";
+      type: "dataFailed" | "start" | "next";
     }
   | {
       type: "answer";

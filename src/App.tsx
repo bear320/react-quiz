@@ -6,6 +6,7 @@ import { Loader } from "./components/Loader";
 import { ErrorMsg } from "./components/ErrorMsg";
 import { Start } from "./components/Start";
 import { Quiz } from "./components/Quiz";
+import { NextButton } from "./components/NextButton";
 
 const initialState: StateType = {
   index: 0,
@@ -35,6 +36,9 @@ const reducer = (state: StateType, action: ActionType): StateType => {
         points: action.payload === q.correctOption ? state.points + q.points : state.points,
       };
 
+    case "next":
+      return { ...state, index: state.index++, answer: null };
+
     default:
       throw new Error("Unknown action");
   }
@@ -63,7 +67,12 @@ const App = () => {
         {status === Status.Loading && <Loader />}
         {status === Status.Error && <ErrorMsg />}
         {status === Status.Ready && <Start qty={questionQty} dispatch={dispatch} />}
-        {status === Status.Active && <Quiz question={questions[index]} answer={answer!} dispatch={dispatch} />}
+        {status === Status.Active && (
+          <>
+            <Quiz question={questions[index]} answer={answer!} dispatch={dispatch} />
+            <NextButton answer={answer!} dispatch={dispatch} />
+          </>
+        )}
       </Main>
     </div>
   );
