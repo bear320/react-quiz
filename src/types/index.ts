@@ -19,6 +19,7 @@ export type StateType = {
   questions: Question[];
   answer: number | null;
   points: number;
+  highscore: number;
   status: Status;
 };
 
@@ -28,7 +29,7 @@ export type ActionType =
       payload: Question[];
     }
   | {
-      type: "dataFailed" | "start" | "next";
+      type: "dataFailed" | "start" | "next" | "finish" | "restart";
     }
   | {
       type: "answer";
