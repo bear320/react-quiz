@@ -9,6 +9,7 @@ import { Quiz } from "./components/Quiz";
 import { NextButton } from "./components/NextButton";
 import { Progress } from "./components/Progress";
 import { Result } from "./components/Result";
+import { Timer } from "./components/Timer";
 
 const initialState: StateType = {
   index: 0,
@@ -16,8 +17,11 @@ const initialState: StateType = {
   answer: null,
   points: 0,
   highscore: 0,
+  time: null,
   status: Status.Loading,
 };
+
+const secondsPerQuestion: number = 30;
 
 const reducer = (state: StateType, action: ActionType): StateType => {
   const q = state.questions[state.index];
@@ -30,7 +34,7 @@ const reducer = (state: StateType, action: ActionType): StateType => {
       return { ...state, status: Status.Error };
 
     case "start":
-      return { ...state, status: Status.Active };
+      return { ...state, time: state.questions.length * secondsPerQuestion, status: Status.Active };
 
     case "answer":
       return {
@@ -52,13 +56,16 @@ const reducer = (state: StateType, action: ActionType): StateType => {
     case "restart":
       return { ...initialState, questions: state.questions, highscore: state.highscore, status: Status.Ready };
 
+    case "tick":
+      return { ...state, time: state.time!--, status: state.time === 0 ? Status.Finished : state.status };
+
     default:
       throw new Error("Unknown action");
   }
 };
 
 const App = () => {
-  const [{ index, questions, answer, points, highscore, status }, dispatch] = useReducer(reducer, initialState);
+  const [{ index, questions, answer, points, highscore, time, status }, dispatch] = useReducer(reducer, initialState);
 
   const questionQty = questions.length;
   const maxPoints = questions.reduce((acc, q) => acc + q.points, 0);
@@ -85,7 +92,10 @@ const App = () => {
           <>
             <Progress index={index} qty={questionQty} points={points} maxPoints={maxPoints} answer={answer!} />
             <Quiz question={questions[index]} answer={answer!} dispatch={dispatch} />
-            <NextButton index={index} qty={questionQty} answer={answer!} dispatch={dispatch} />
+            <footer>
+              <Timer time={time!} dispatch={dispatch} />
+              <NextButton index={index} qty={questionQty} answer={answer!} dispatch={dispatch} />
+            </footer>
           </>
         )}
         {status === Status.Finished && (
